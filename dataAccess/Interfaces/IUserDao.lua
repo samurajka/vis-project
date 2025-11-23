@@ -6,6 +6,4 @@ function IUserDao:GetUsers() print("not implemented") end
 
 function IUserDao:GetUserById() print("not implemented") end
 
-function IUserDao:CreateUser()
-    
-end
+function IUserDao:CreateUser(name) end

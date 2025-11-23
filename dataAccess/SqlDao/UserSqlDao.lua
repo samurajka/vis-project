@@ -41,6 +41,13 @@ function UserSqlDao:GetUserById(id)
     end
 
     sql:finalize()
-    return row
+    return row --or {error = "no user"}
 end
 
+function UserSqlDao:GetUsers()
+    local users = {}
+    for row in self.db:nrows("SELECT id, name FROM User") do
+        table.insert(users, row)
+    end
+    return users
+end
