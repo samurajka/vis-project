@@ -33,20 +33,21 @@ function MarketListingSqlDao:CreateListing(totalPrice, cards)
     local cardSql = self.db:prepare("INSERT INTO ListedCard (mlid, cid, condition, foil) VALUES (?, ?, ?, ?)")
     for _, card in ipairs(cards) do
         local cid = tonumber(card.cid)
-        local cond = tonumber(card.condition)
+        local cond = tonumber(card.cond)
         local foil = tonumber(card.foil)
         cardSql:bind_values(listingId, cid, cond, foil)
         local rc2 = cardSql:step()
         if rc2 ~= sqlite3.DONE then
             cardSql:finalize()
             self.db:exec("ROLLBACK;")
-            return nil, "Failed to insert Card: " .. cid
+            return nil, "Failed to insert Card: " .. cid .. "  card values: mlid, cid, condition, foil" .. listingId .. ", " .. cid .. ", " .. cond .. ", " .. foil
         end
         cardSql:reset()
     end
     cardSql:finalize()
 
     self.db:exec("COMMIT;")
+
     return listingId
 end
 

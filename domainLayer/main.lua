@@ -57,6 +57,18 @@ while true do
             end
             client:close()
 
+        elseif path:match("^/api/listing/%d+$") then
+            local id = path:match("(%d+)$")
+            local rec = DataService.MarketListing:GetMarketListingById(id)
+
+            if not rec then
+                Send_response(client, "404 not found", {error = "listing not found", uid = id})
+                client:close()
+            else
+                Send_response(client, "200 OK", rec)
+            end
+            client:close()
+
         --
         elseif path == "/api/marketlisting" and method == "POST" then
             local content_length = tonumber(requestHeaders["content-length"] or "0")
