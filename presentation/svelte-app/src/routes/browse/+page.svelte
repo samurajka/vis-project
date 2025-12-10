@@ -2,12 +2,15 @@
   import { user } from '$lib/authStore.js';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
+  import ReportListingModal from '$components/ReportListingModal.svelte';
 
   let listings = [];
   let loading = true;
   let error = '';
   let selectedListing = null;
   let selectedTab = 'all';
+  let showReportModal = false;
+  let listingToReport = null;
 
   const conditionNames = {
     0: 'Mint',
@@ -53,6 +56,21 @@
 
   function closeListing() {
     selectedListing = null;
+  }
+
+  function openReportModal(listing) {
+    listingToReport = listing;
+    showReportModal = true;
+    closeListing();
+  }
+
+  function closeReportModal() {
+    showReportModal = false;
+    listingToReport = null;
+  }
+
+  function onReportSubmitted() {
+    // Could refresh warnings count here if needed
   }
 </script>
 
@@ -112,8 +130,8 @@
   {/if}
 
   {#if selectedListing}
-    <div class="modal-overlay" role="button" tabindex="0" onkeydown={(e) => e.key === 'Escape' && closeListing()} onclick={closeListing}>
-      <div class="modal" role="dialog" onclick={(e) => e.stopPropagation()}>
+    <div class="modal-overlay" role="presentation" onclick={closeListing}>
+      <div class="modal" role="dialog" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.key === 'Escape' && closeListing()}>
         <div class="modal-header">
           <h2>Listing #{selectedListing.id}</h2>
           <button class="close-button" onclick={closeListing}>×</button>
@@ -152,6 +170,7 @@
           {/if}
 
           <div class="modal-actions">
+            <button class="btn-secondary" onclick={() => openReportModal(selectedListing)}>⚠️ Report Listing</button>
             <button class="btn-primary" onclick={() => alert('Feature coming soon!')}>Contact Seller</button>
             <button class="btn-secondary" onclick={closeListing}>Close</button>
           </div>
@@ -159,6 +178,13 @@
       </div>
     </div>
   {/if}
+
+  <ReportListingModal
+    listing={listingToReport}
+    isOpen={showReportModal}
+    onClose={closeReportModal}
+    onSubmit={onReportSubmitted}
+  />
 </div>
 
 <style>

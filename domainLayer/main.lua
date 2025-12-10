@@ -96,6 +96,61 @@ while true do
             Send_response(client, "200 OK", listings)
             client:close()
 
+        elseif path == "/api/warning" and method == "POST" then
+            local content_length = tonumber(requestHeaders["content-length"] or "0")
+            local body_raw = ""
+            if content_length > 0 then
+                body_raw = client:receive(content_length)
+            end
+
+            local data, pos, jerr = json.decode(body_raw, 1, nil)
+            if not data or not data.marketListingId or not data.userId or not data.reason then
+                Send_response(client, "400 bad request", {error = "missing marketListingId, userId, or reason"})
+                client:close()
+            else
+                local warningId = DataService.Warning:CreateWarning(
+                    tonumber(data.marketListingId),
+                    tonumber(data.userId),
+                    data.reason
+                )
+                if not warningId then
+                    Send_response(client, "500 server error", {error = "failed to create warning"})
+                    client:close()
+                else
+                    Send_response(client, "201 Created", {id = warningId, success = true})
+                    client:close()
+                    print("inserted warning id: " .. warningId)
+                end
+            end
+
+        elseif path:match("^/api/warnings/listing/%d+$") and method == "GET" then
+            local listingId = path:match("(%d+)$")
+            local warnings = DataService.Warning:GetWarningsByListing(tonumber(listingId))
+            Send_response(client, "200 OK", warnings)
+            client:close()
+
+        elseif path:match("^/api/warnings/user/%d+$") and method == "GET" then
+            local userId = path:match("(%d+)$")
+            local warnings = DataService.Warning:GetWarningsByUser(tonumber(userId))
+            Send_response(client, "200 OK", warnings)
+            client:close()
+
+        elseif path == "/api/warnings" and method == "GET" then
+            local warnings = DataService.Warning:GetAllWarnings()
+            Send_response(client, "200 OK", warnings)
+            client:close()
+
+        elseif path:match("^/api/warning/%d+$") and method == "GET" then
+            local warningId = path:match("(%d+)$")
+            local warning = DataService.Warning:GetWarningById(tonumber(warningId))
+            if not warning then
+                Send_response(client, "404 not found", {error = "warning not found"})
+                client:close()
+            else
+                Send_response(client, "200 OK", warning)
+                client:close()
+            end
+
         --
         elseif path == "/api/marketlisting" and method == "POST" then
             local content_length = tonumber(requestHeaders["content-length"] or "0")

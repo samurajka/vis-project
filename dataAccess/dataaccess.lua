@@ -5,11 +5,13 @@ require "Interfaces.ICardDao"
 require "Interfaces.IListedCardDao"
 require "Interfaces.IUserDao"
 require "Interfaces.IMarketListingDao"
+require "Interfaces.IWarningDao"
 
 require "SqlDao.UserSqlDao"
 require "SqlDao.CardSqlDao"
 require "SqlDao.MarketListingSqlDao"
 require "SqlDao.ListedCardSqlDao"
+require "SqlDao.WarningSqlDao"
 
 require "TextDao.UserCsvDao"
 
@@ -39,6 +41,7 @@ local userDao
 local cardDao
 local listedCardDao
 local marketListingDao
+local warningDao
 
 
 if CONF.dbsystem == "SQLITE" then
@@ -50,6 +53,8 @@ if CONF.dbsystem == "SQLITE" then
     listedCardDao = ListedCardSqlDao:new(db)
 
     marketListingDao = MarketListingSqlDao:new(db)
+
+    warningDao = WarningSqlDao:new(db)
 elseif CONF.dbsystem == "CSV" then
     -- use csv dao implementations
     userDao = UserCsvDao:new("Databases/User.csv")
@@ -67,5 +72,7 @@ dataaccess.User = userDao
 dataaccess.ListedCard = listedCardDao
 
 dataaccess.MarketListing = marketListingDao
+
+dataaccess.Warning = warningDao
 
 return dataaccess
