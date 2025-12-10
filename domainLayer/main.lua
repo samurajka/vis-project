@@ -38,6 +38,28 @@ while true do
         if method == "OPTIONS" then
             status = "204 No Content"
             body = ""
+        elseif path == "/api/login" and method == "POST" then
+            local content_length = tonumber(requestHeaders["content-length"] or "0")
+            local body_raw = ""
+            if content_length > 0 then
+                body_raw = client:receive(content_length)
+            end
+
+            local data, pos, jerr = json.decode(body_raw, 1, nil)
+            if not data or not data.name or not data.password then
+                Send_response(client, "400 bad request", {error = "missing name or password"})
+                client:close()
+            else
+                local user, err = DataService.User:ValidateLogin(data.name, data.password)
+                if not user then
+                    Send_response(client, "401 unauthorized", {error = err})
+                    client:close()
+                else
+                    Send_response(client, "200 OK", {id = user.id, name = user.name})
+                    client:close()
+                end
+            end
+
         elseif path == "/api/item" then
             body = '{"item": "french fries", "price": 3.99}'
             headers = headers .. "Content-Type: application/json\r\n"
@@ -67,6 +89,11 @@ while true do
             else
                 Send_response(client, "200 OK", rec)
             end
+            client:close()
+
+        elseif path == "/api/listings" and method == "GET" then
+            local listings = DataService.MarketListing:GetAllListings()
+            Send_response(client, "200 OK", listings)
             client:close()
 
         --
@@ -103,6 +130,7 @@ while true do
                     else 
                         Send_response(client, "201 Listing created")
                         client:close()
+                        print("inserted listing id: " .. mlid)
                     end
                 end
 

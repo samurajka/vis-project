@@ -71,3 +71,28 @@ function MarketListingSqlDao:GetMarketListingById(id)
     return result
 end
 
+function MarketListingSqlDao:GetAllListings()
+    local listings = {}
+    
+    for row in self.db:nrows("SELECT id, price FROM MarketListing ORDER BY id DESC") do
+        local listing = {
+            id = row.id,
+            price = row.price,
+            cards = {}
+        }
+        
+        for cardRow in self.db:nrows("SELECT id, cid, condition, foil FROM ListedCard WHERE mlid = " .. row.id) do
+            table.insert(listing.cards, {
+                id = cardRow.id,
+                cid = cardRow.cid,
+                cond = cardRow.condition,
+                foil = cardRow.foil
+            })
+        end
+        
+        table.insert(listings, listing)
+    end
+    
+    return listings
+end
+
