@@ -5,6 +5,8 @@ require "SqlDao.UserSqlDao"
 require "SqlDao.CardSqlDao"
 require "SqlDao.MarketListingSqlDao"
 
+CONF = require "conf"
+
 local db = sqlite3.open("Databases/database.sql")
 
 db:exec("PRAGMA journal_mode=WAL;")

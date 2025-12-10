@@ -11,6 +11,9 @@ require "SqlDao.CardSqlDao"
 require "SqlDao.MarketListingSqlDao"
 require "SqlDao.ListedCardSqlDao"
 
+require "TextDao.UserCsvDao"
+
+CONF = require "conf"
 
 local dataaccess = {}
 
@@ -31,15 +34,30 @@ assert(db)
 db:exec("PRAGMA journal_mode=WAL;")
 
 
--- strategy pattern (not implemented yet)
+-- strategy pattern
+local userDao
+local cardDao
+local listedCardDao
+local marketListingDao
 
-local userDao = UserSqlDao:new(db)
 
-local cardDao = CardSqlDao:new(db)
+if CONF.dbsystem == "SQLITE" then
+    -- use sqlite dao implementations
+    userDao = UserSqlDao:new(db)
 
-local listedCardDao = ListedCardSqlDao:new(db)
+    cardDao = CardSqlDao:new(db)
 
-local marketListingDao = MarketListingSqlDao:new(db)
+    listedCardDao = ListedCardSqlDao:new(db)
+
+    marketListingDao = MarketListingSqlDao:new(db)
+elseif CONF.dbsystem == "CSV" then
+    -- use csv dao implementations
+    userDao = UserCsvDao:new("Databases/User.csv")
+else
+    error("Unsupported DB system: " .. tostring(CONF.dbsystem) .. " - check conf.lua")
+end
+
+
 
 -- assigning the services and returning
 dataaccess.Card = cardDao
